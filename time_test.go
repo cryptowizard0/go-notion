@@ -5,7 +5,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/dstotijn/go-notion"
+	"github.com/cryptowizard0/go-notion"
 	"github.com/google/go-cmp/cmp"
 )
 

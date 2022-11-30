@@ -1,4 +1,4 @@
-module github.com/dstotijn/go-notion
+module github.com/cryptowizard0/go-notion
 
 go 1.19
 
