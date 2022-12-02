@@ -11,12 +11,11 @@ type Block interface {
 	ID() string
 	Parent() Parent
 	CreatedTime() time.Time
-	CreatedBy() BaseUser
-	LastEditedBy() BaseUser
+	CreatedBy() BlockUser
+	LastEditedBy() BlockUser
 	LastEditedTime() time.Time
 	HasChildren() bool
 	Archived() bool
-	json.Marshaler
 }
 
 type BlockDTO struct {
@@ -57,17 +56,22 @@ type BlockDTO struct {
 	Template         *TemplateBlock         `json:"template,omitempty"`
 }
 
-func (b BlockDTO) MarshalJSON() ([]byte, error) {
-	return json.Marshal(b)
+// func (b BlockDTO) MarshalJSON() ([]byte, error) {
+// 	return json.Marshal(&b)
+// }
+
+type BlockUser struct {
+	Object string `json:"object"`
+	ID     string `json:"id"`
 }
 
 type BaseBlock struct {
-	BID             string    `json:"id"`
+	BID             string    `json:"id,omitempty"`
 	BParent         Parent    `json:"parent,omitempty"`
 	BCreatedTime    time.Time `json:"created_time,omitempty"`
-	BCreatedBy      BaseUser  `json:"created_by,omitempty"`
+	BCreatedBy      BlockUser `json:"created_by,omitempty"`
 	BLastEditedTime time.Time `json:"last_edited_time,omitempty"`
-	BLastEditedBy   BaseUser  `json:"last_edited_by,omitempty"`
+	BLastEditedBy   BlockUser `json:"last_edited_by,omitempty"`
 	BHasChildren    bool      `json:"has_children,omitempty"`
 	BArchived       bool      `json:"archived,omitempty"`
 }
@@ -81,7 +85,7 @@ func (b BaseBlock) CreatedTime() time.Time {
 	return b.BCreatedTime
 }
 
-func (b BaseBlock) CreatedBy() BaseUser {
+func (b BaseBlock) CreatedBy() BlockUser {
 	return b.BCreatedBy
 }
 
@@ -89,7 +93,7 @@ func (b BaseBlock) LastEditedTime() time.Time {
 	return b.BLastEditedTime
 }
 
-func (b BaseBlock) LastEditedBy() BaseUser {
+func (b BaseBlock) LastEditedBy() BlockUser {
 	return b.BLastEditedBy
 }
 
@@ -106,613 +110,165 @@ func (b BaseBlock) Parent() Parent {
 }
 
 type ParagraphBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Color    Color      `json:"color,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b ParagraphBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ParagraphBlock
-		dto        struct {
-			Paragraph blockAlias `json:"paragraph"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Paragraph: blockAlias(b),
-	})
 }
 
 type BulletedListItemBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Color    Color      `json:"color,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b BulletedListItemBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias BulletedListItemBlock
-		dto        struct {
-			BulletedListItem blockAlias `json:"bulleted_list_item"`
-		}
-	)
-
-	return json.Marshal(dto{
-		BulletedListItem: blockAlias(b),
-	})
 }
 
 type NumberedListItemBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Color    Color      `json:"color,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b NumberedListItemBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias NumberedListItemBlock
-		dto        struct {
-			NumberedListItem blockAlias `json:"numbered_list_item"`
-		}
-	)
-
-	return json.Marshal(dto{
-		NumberedListItem: blockAlias(b),
-	})
 }
 
 type QuoteBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Color    Color      `json:"color,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b QuoteBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias QuoteBlock
-		dto        struct {
-			Quote blockAlias `json:"quote"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Quote: blockAlias(b),
-	})
 }
 
 type ToggleBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Color    Color      `json:"color,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b ToggleBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ToggleBlock
-		dto        struct {
-			Toggle blockAlias `json:"toggle"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Toggle: blockAlias(b),
-	})
-}
-
 type TemplateBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b TemplateBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias TemplateBlock
-		dto        struct {
-			Template blockAlias `json:"template"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Template: blockAlias(b),
-	})
-}
-
 type Heading1Block struct {
-	BaseBlock
-
 	RichText     []RichText `json:"rich_text"`
 	Children     []Block    `json:"children,omitempty"`
 	Color        Color      `json:"color,omitempty"`
 	IsToggleable bool       `json:"is_toggleable"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b Heading1Block) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias Heading1Block
-		dto        struct {
-			Heading1 blockAlias `json:"heading_1"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Heading1: blockAlias(b),
-	})
 }
 
 type Heading2Block struct {
-	BaseBlock
-
 	RichText     []RichText `json:"rich_text"`
 	Children     []Block    `json:"children,omitempty"`
 	Color        Color      `json:"color,omitempty"`
 	IsToggleable bool       `json:"is_toggleable"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b Heading2Block) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias Heading2Block
-		dto        struct {
-			Heading2 blockAlias `json:"heading_2"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Heading2: blockAlias(b),
-	})
 }
 
 type Heading3Block struct {
-	BaseBlock
-
 	RichText     []RichText `json:"rich_text"`
 	Children     []Block    `json:"children,omitempty"`
 	Color        Color      `json:"color,omitempty"`
 	IsToggleable bool       `json:"is_toggleable"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b Heading3Block) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias Heading3Block
-		dto        struct {
-			Heading3 blockAlias `json:"heading_3"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Heading3: blockAlias(b),
-	})
-}
-
 type ToDoBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Checked  *bool      `json:"checked,omitempty"`
 	Color    Color      `json:"color,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b ToDoBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ToDoBlock
-		dto        struct {
-			ToDo blockAlias `json:"to_do"`
-		}
-	)
-
-	return json.Marshal(dto{
-		ToDo: blockAlias(b),
-	})
-}
-
 type ChildPageBlock struct {
-	BaseBlock
-
 	Title string `json:"title"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b ChildPageBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ChildPageBlock
-		dto        struct {
-			ChildPage blockAlias `json:"child_page"`
-		}
-	)
-
-	return json.Marshal(dto{
-		ChildPage: blockAlias(b),
-	})
 }
 
 type ChildDatabaseBlock struct {
-	BaseBlock
-
 	Title string `json:"title"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b ChildDatabaseBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ChildDatabaseBlock
-		dto        struct {
-			ChildDatabase blockAlias `json:"child_database"`
-		}
-	)
-
-	return json.Marshal(dto{
-		ChildDatabase: blockAlias(b),
-	})
-}
-
 type CalloutBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Icon     *Icon      `json:"icon,omitempty"`
 	Color    Color      `json:"color,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b CalloutBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias CalloutBlock
-		dto        struct {
-			Callout blockAlias `json:"callout"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Callout: blockAlias(b),
-	})
-}
-
 type CodeBlock struct {
-	BaseBlock
-
 	RichText []RichText `json:"rich_text"`
 	Children []Block    `json:"children,omitempty"`
 	Caption  []RichText `json:"caption,omitempty"`
 	Language *string    `json:"language,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b CodeBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias CodeBlock
-		dto        struct {
-			Code blockAlias `json:"code"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Code: blockAlias(b),
-	})
-}
-
 type EmbedBlock struct {
-	BaseBlock
-
 	URL string `json:"url"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b EmbedBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias EmbedBlock
-		dto        struct {
-			Embed blockAlias `json:"embed"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Embed: blockAlias(b),
-	})
-}
-
 type ImageBlock struct {
-	BaseBlock
-
 	Type     FileType      `json:"type"`
 	File     *FileFile     `json:"file,omitempty"`
 	External *FileExternal `json:"external,omitempty"`
 	Caption  []RichText    `json:"caption,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b ImageBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ImageBlock
-		dto        struct {
-			Image blockAlias `json:"image"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Image: blockAlias(b),
-	})
 }
 
 type AudioBlock struct {
-	BaseBlock
-
 	Type     FileType      `json:"type"`
 	File     *FileFile     `json:"file,omitempty"`
 	External *FileExternal `json:"external,omitempty"`
 	Caption  []RichText    `json:"caption,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b AudioBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ImageBlock
-		dto        struct {
-			Audio blockAlias `json:"audio"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Audio: blockAlias(b),
-	})
 }
 
 type VideoBlock struct {
-	BaseBlock
-
 	Type     FileType      `json:"type"`
 	File     *FileFile     `json:"file,omitempty"`
 	External *FileExternal `json:"external,omitempty"`
 	Caption  []RichText    `json:"caption,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b VideoBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias VideoBlock
-		dto        struct {
-			Video blockAlias `json:"video"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Video: blockAlias(b),
-	})
 }
 
 type FileBlock struct {
-	BaseBlock
-
 	Type     FileType      `json:"type"`
 	File     *FileFile     `json:"file,omitempty"`
 	External *FileExternal `json:"external,omitempty"`
 	Caption  []RichText    `json:"caption,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b FileBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias FileBlock
-		dto        struct {
-			File blockAlias `json:"file"`
-		}
-	)
-
-	return json.Marshal(dto{
-		File: blockAlias(b),
-	})
 }
 
 type PDFBlock struct {
-	BaseBlock
-
 	Type     FileType      `json:"type"`
 	File     *FileFile     `json:"file,omitempty"`
 	External *FileExternal `json:"external,omitempty"`
 	Caption  []RichText    `json:"caption,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b PDFBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias PDFBlock
-		dto        struct {
-			PDF blockAlias `json:"pdf"`
-		}
-	)
-
-	return json.Marshal(dto{
-		PDF: blockAlias(b),
-	})
-}
-
 type BookmarkBlock struct {
-	BaseBlock
-
 	URL     string     `json:"url"`
 	Caption []RichText `json:"caption,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b BookmarkBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias BookmarkBlock
-		dto        struct {
-			Bookmark blockAlias `json:"bookmark"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Bookmark: blockAlias(b),
-	})
-}
-
 type EquationBlock struct {
-	BaseBlock
-
 	Expression string `json:"expression"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b EquationBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias EquationBlock
-		dto        struct {
-			Equation blockAlias `json:"equation"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Equation: blockAlias(b),
-	})
-}
-
 type ColumnListBlock struct {
-	BaseBlock
-
 	Children []ColumnBlock `json:"children,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b ColumnListBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ColumnListBlock
-		dto        struct {
-			ColumnList blockAlias `json:"column_list"`
-		}
-	)
-
-	return json.Marshal(dto{
-		ColumnList: blockAlias(b),
-	})
-}
-
 type ColumnBlock struct {
-	BaseBlock
-
 	Children []Block `json:"children,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b ColumnBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias ColumnBlock
-		dto        struct {
-			Column blockAlias `json:"column"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Column: blockAlias(b),
-	})
-}
-
 type TableBlock struct {
-	BaseBlock
-
 	TableWidth      int     `json:"table_width"`
 	HasColumnHeader bool    `json:"has_column_header"`
 	HasRowHeader    bool    `json:"has_row_header"`
 	Children        []Block `json:"children,omitempty"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b TableBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias TableBlock
-		dto        struct {
-			Table blockAlias `json:"table"`
-		}
-	)
-
-	return json.Marshal(dto{
-		Table: blockAlias(b),
-	})
-}
-
 type TableRowBlock struct {
-	BaseBlock
-
 	Cells [][]RichText `json:"cells"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b TableRowBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias TableRowBlock
-		dto        struct {
-			TableRow blockAlias `json:"table_row"`
-		}
-	)
-
-	return json.Marshal(dto{
-		TableRow: blockAlias(b),
-	})
-}
-
 type LinkPreviewBlock struct {
-	BaseBlock
-
 	URL string `json:"url"`
 }
 
-// MarshalJSON implements json.Marshaler.
-func (b LinkPreviewBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias LinkPreviewBlock
-		dto        struct {
-			LinkPreview blockAlias `json:"link_preview"`
-		}
-	)
-
-	return json.Marshal(dto{
-		LinkPreview: blockAlias(b),
-	})
-}
-
 type LinkToPageBlock struct {
-	BaseBlock
-
 	Type       LinkToPageType `json:"type"`
 	PageID     string         `json:"page_id,omitempty"`
 	DatabaseID string         `json:"database_id,omitempty"`
-}
-
-// MarshalJSON implements json.Marshaler.
-func (b LinkToPageBlock) MarshalJSON() ([]byte, error) {
-	type (
-		blockAlias LinkToPageBlock
-		dto        struct {
-			LinkToPage blockAlias `json:"link_to_page"`
-		}
-	)
-
-	return json.Marshal(dto{
-		LinkToPage: blockAlias(b),
-	})
 }
 
 type LinkToPageType string

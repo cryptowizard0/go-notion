@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -77,6 +78,124 @@ func TestNewClient(t *testing.T) {
 			t.Errorf("option func called with incorrect *Client value (expected: %+v, got: %+v)", exp, got)
 		}
 	})
+}
+
+func TestBlockJson(t *testing.T) {
+	jsonStr := `{
+		"object": "list",
+		"results": [
+		  {
+			"object": "block",
+			"id": "d173b3d8-e183-4b87-b90c-76633006496d",
+			"parent": {
+			  "type": "page_id",
+			  "page_id": "c585de41-bf9e-469b-b2f7-b13f93734f38"
+			},
+			"created_time": "2022-11-28T08:47:00.000Z",
+			"last_edited_time": "2022-11-28T08:47:00.000Z",
+			"created_by": {
+			  "object": "user",
+			  "id": "72c49c64-330f-4943-a945-a075bb2d7abd"
+			},
+			"last_edited_by": {
+			  "object": "user",
+			  "id": "72c49c64-330f-4943-a945-a075bb2d7abd"
+			},
+			"has_children": false,
+			"archived": false,
+			"type": "image",
+			"image": {
+			  "caption": [],
+			  "type": "external",
+			  "external": {
+				"url": "https://arseed.web3infra.dev/pjpGPYj_tpxd_43Y7TogDDGZup3m-HQE9IuycpvcRXY"
+			  }
+			}
+		  },
+		  {
+			"object": "block",
+			"id": "006e447b-f635-491a-8101-671d2356df7c",
+			"parent": {
+			  "type": "page_id",
+			  "page_id": "c585de41-bf9e-469b-b2f7-b13f93734f38"
+			},
+			"created_time": "2022-11-28T10:02:00.000Z",
+			"last_edited_time": "2022-11-28T10:02:00.000Z",
+			"created_by": {
+			  "object": "user",
+			  "id": "72c49c64-330f-4943-a945-a075bb2d7abd"
+			},
+			"last_edited_by": {
+			  "object": "user",
+			  "id": "72c49c64-330f-4943-a945-a075bb2d7abd"
+			},
+			"has_children": false,
+			"archived": false,
+			"type": "image",
+			"image": {
+			  "caption": [],
+			  "type": "external",
+			  "external": {
+				"url": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?ixlib=rb-4.0.3&q=80&fm=jpg&crop=entropy&cs=tinysrgb"
+			  }
+			}
+		  },
+		  {
+			"object": "block",
+			"id": "536808ed-6330-4d51-8bb4-e2aa7f6cd5ef",
+			"parent": {
+			  "type": "page_id",
+			  "page_id": "c585de41-bf9e-469b-b2f7-b13f93734f38"
+			},
+			"created_time": "2022-12-02T02:24:00.000Z",
+			"last_edited_time": "2022-12-02T02:24:00.000Z",
+			"created_by": {
+			  "object": "user",
+			  "id": "72c49c64-330f-4943-a945-a075bb2d7abd"
+			},
+			"last_edited_by": {
+			  "object": "user",
+			  "id": "72c49c64-330f-4943-a945-a075bb2d7abd"
+			},
+			"has_children": false,
+			"archived": false,
+			"type": "image",
+			"image": {
+			  "caption": [],
+			  "type": "file",
+			  "file": {
+				"url": "https://s3.us-west-2.amazonaws.com/secure.notion-static.com/b92597c1-e77a-4f46-a45b-ffe0c2cf9ece/Untitled.png?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=AKIAT73L2G45EIPT3X45%2F20221202%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20221202T051804Z&X-Amz-Expires=3600&X-Amz-Signature=0093b6be2cb6f64f533fc60184168d506a7a71669ab66b59f17f588defb8c722&X-Amz-SignedHeaders=host&x-id=GetObject",
+				"expiry_time": "2022-12-02T06:18:04.732Z"
+			  }
+			}
+		  }
+		],
+		"next_cursor": null,
+		"has_more": false,
+		"type": "block",
+		"block": {}
+	  }`
+
+	var blocks notion.BlockChildrenResponse
+	err := json.Unmarshal([]byte(jsonStr), &blocks)
+	if err != nil {
+		t.Fatal("Unmarshal failed: err: ", err.Error())
+	}
+	for _, b := range blocks.Results {
+		block, ok := b.(notion.BlockDTO)
+		if !ok {
+			t.Fatal("type error")
+			return
+		}
+		if block.Image != nil {
+			str, err := json.Marshal(block)
+			if err != nil {
+				t.Fatal("marshal error: ", err.Error())
+				return
+			}
+			fmt.Println(string(str))
+		}
+	}
 }
 
 func TestFindDatabaseByID(t *testing.T) {
@@ -1808,11 +1927,13 @@ func TestCreatePage(t *testing.T) {
 					},
 				},
 				Children: []notion.Block{
-					&notion.ParagraphBlock{
-						RichText: []notion.RichText{
-							{
-								Text: &notion.Text{
-									Content: "Lorem ipsum dolor sit amet.",
+					notion.BlockDTO{
+						Paragraph: &notion.ParagraphBlock{
+							RichText: []notion.RichText{
+								{
+									Text: &notion.Text{
+										Content: "Lorem ipsum dolor sit amet.",
+									},
 								},
 							},
 						},
@@ -1981,11 +2102,13 @@ func TestCreatePage(t *testing.T) {
 					},
 				},
 				Children: []notion.Block{
-					&notion.ParagraphBlock{
-						RichText: []notion.RichText{
-							{
-								Text: &notion.Text{
-									Content: "Lorem ipsum dolor sit amet.",
+					notion.BlockDTO{
+						Paragraph: &notion.ParagraphBlock{
+							RichText: []notion.RichText{
+								{
+									Text: &notion.Text{
+										Content: "Lorem ipsum dolor sit amet.",
+									},
 								},
 							},
 						},
@@ -3088,17 +3211,19 @@ func TestFindBlockChildrenById(t *testing.T) {
 			},
 			expResponse: notion.BlockChildrenResponse{
 				Results: []notion.Block{
-					&notion.ParagraphBlock{
-						RichText: []notion.RichText{
-							{
-								Type: notion.RichTextTypeText,
-								Text: &notion.Text{
-									Content: "Lorem ipsum dolor sit amet.",
+					notion.BlockDTO{
+						Paragraph: &notion.ParagraphBlock{
+							RichText: []notion.RichText{
+								{
+									Type: notion.RichTextTypeText,
+									Text: &notion.Text{
+										Content: "Lorem ipsum dolor sit amet.",
+									},
+									Annotations: &notion.Annotations{
+										Color: notion.ColorDefault,
+									},
+									PlainText: "Lorem ipsum dolor sit amet.",
 								},
-								Annotations: &notion.Annotations{
-									Color: notion.ColorDefault,
-								},
-								PlainText: "Lorem ipsum dolor sit amet.",
 							},
 						},
 					},
@@ -3257,11 +3382,13 @@ func TestAppendBlockChildren(t *testing.T) {
 		{
 			name: "successful response",
 			children: []notion.Block{
-				&notion.ParagraphBlock{
-					RichText: []notion.RichText{
-						{
-							Text: &notion.Text{
-								Content: "Lorem ipsum dolor sit amet.",
+				notion.BlockDTO{
+					Paragraph: &notion.ParagraphBlock{
+						RichText: []notion.RichText{
+							{
+								Text: &notion.Text{
+									Content: "Lorem ipsum dolor sit amet.",
+								},
 							},
 						},
 					},
@@ -3325,20 +3452,21 @@ func TestAppendBlockChildren(t *testing.T) {
 			},
 			expResponse: notion.BlockChildrenResponse{
 				Results: []notion.Block{
-					&notion.ParagraphBlock{
-						RichText: []notion.RichText{
-							{
-								Type: notion.RichTextTypeText,
-								Text: &notion.Text{
-									Content: "Lorem ipsum dolor sit amet.",
+					notion.BlockDTO{
+						Paragraph: &notion.ParagraphBlock{
+							RichText: []notion.RichText{
+								{
+									Type: notion.RichTextTypeText,
+									Text: &notion.Text{
+										Content: "Lorem ipsum dolor sit amet.",
+									},
+									Annotations: &notion.Annotations{
+										Color: notion.ColorDefault,
+									},
+									PlainText: "Lorem ipsum dolor sit amet.",
 								},
-								Annotations: &notion.Annotations{
-									Color: notion.ColorDefault,
-								},
-								PlainText: "Lorem ipsum dolor sit amet.",
 							},
-						},
-					},
+						}},
 				},
 				HasMore:    true,
 				NextCursor: notion.StringPtr("A^hd"),
@@ -3357,11 +3485,13 @@ func TestAppendBlockChildren(t *testing.T) {
 		{
 			name: "error response",
 			children: []notion.Block{
-				&notion.ParagraphBlock{
-					RichText: []notion.RichText{
-						{
-							Text: &notion.Text{
-								Content: "Lorem ipsum dolor sit amet.",
+				notion.BlockDTO{
+					Paragraph: &notion.ParagraphBlock{
+						RichText: []notion.RichText{
+							{
+								Text: &notion.Text{
+									Content: "Lorem ipsum dolor sit amet.",
+								},
 							},
 						},
 					},
@@ -4161,9 +4291,9 @@ func TestFindBlockByID(t *testing.T) {
 		expID             string
 		expParent         notion.Parent
 		expCreatedTime    time.Time
-		expCreatedBy      notion.BaseUser
+		expCreatedBy      notion.BlockUser
 		expLastEditedTime time.Time
-		expLastEditedBy   notion.BaseUser
+		expLastEditedBy   notion.BlockUser
 		expHasChildren    bool
 		expArchived       bool
 		expError          error
@@ -4200,20 +4330,22 @@ func TestFindBlockByID(t *testing.T) {
 				)
 			},
 			respStatusCode: http.StatusOK,
-			expBlock: &notion.ChildPageBlock{
-				Title: "test title",
-			},
+			expBlock: &notion.BlockDTO{
+				ChildPage: &notion.ChildPageBlock{
+					Title: "test title",
+				}},
+
 			expID: "048e165e-352d-4119-8128-e46c3527d95c",
 			expParent: notion.Parent{
 				Type:   notion.ParentTypePage,
 				PageID: "59833787-2cf9-4fdf-8782-e53db20768a5",
 			},
 			expCreatedTime: mustParseTime(time.RFC3339, "2021-10-02T06:09:00Z"),
-			expCreatedBy: notion.BaseUser{
+			expCreatedBy: notion.BlockUser{
 				ID: "71e95936-2737-4e11-b03d-f174f6f13087",
 			},
 			expLastEditedTime: mustParseTime(time.RFC3339, "2021-10-02T06:31:00Z"),
-			expLastEditedBy: notion.BaseUser{
+			expLastEditedBy: notion.BlockUser{
 				ID: "5ba97cc9-e5e0-4363-b33a-1d80a635577f",
 			},
 			expHasChildren: true,
@@ -4325,11 +4457,13 @@ func TestUpdateBlock(t *testing.T) {
 	}{
 		{
 			name: "successful response",
-			block: &notion.ParagraphBlock{
-				RichText: []notion.RichText{
-					{
-						Text: &notion.Text{
-							Content: "Foobar",
+			block: notion.BlockDTO{
+				Paragraph: &notion.ParagraphBlock{
+					RichText: []notion.RichText{
+						{
+							Text: &notion.Text{
+								Content: "Foobar",
+							},
 						},
 					},
 				},
@@ -4380,16 +4514,18 @@ func TestUpdateBlock(t *testing.T) {
 					},
 				},
 			},
-			expResponse: &notion.ParagraphBlock{
-				RichText: []notion.RichText{
-					{
-						Type: notion.RichTextTypeText,
-						Text: &notion.Text{
-							Content: "Foobar",
-						},
-						PlainText: "Foobar",
-						Annotations: &notion.Annotations{
-							Color: notion.ColorDefault,
+			expResponse: &notion.BlockDTO{
+				Paragraph: &notion.ParagraphBlock{
+					RichText: []notion.RichText{
+						{
+							Type: notion.RichTextTypeText,
+							Text: &notion.Text{
+								Content: "Foobar",
+							},
+							PlainText: "Foobar",
+							Annotations: &notion.Annotations{
+								Color: notion.ColorDefault,
+							},
 						},
 					},
 				},
@@ -4403,15 +4539,18 @@ func TestUpdateBlock(t *testing.T) {
 		},
 		{
 			name: "error response",
-			block: &notion.ParagraphBlock{
-				RichText: []notion.RichText{
-					{
-						Text: &notion.Text{
-							Content: "Foobar",
+			block: &notion.BlockDTO{
+				Paragraph: &notion.ParagraphBlock{
+					RichText: []notion.RichText{
+						{
+							Text: &notion.Text{
+								Content: "Foobar",
+							},
 						},
 					},
 				},
 			},
+
 			respBody: func(_ *http.Request) io.Reader {
 				return strings.NewReader(
 					`{
@@ -4568,16 +4707,18 @@ func TestDeleteBlock(t *testing.T) {
 				)
 			},
 			respStatusCode: http.StatusOK,
-			expResponse: &notion.ParagraphBlock{
-				RichText: []notion.RichText{
-					{
-						Type: notion.RichTextTypeText,
-						Text: &notion.Text{
-							Content: "Foobar",
-						},
-						PlainText: "Foobar",
-						Annotations: &notion.Annotations{
-							Color: notion.ColorDefault,
+			expResponse: &notion.BlockDTO{
+				Paragraph: &notion.ParagraphBlock{
+					RichText: []notion.RichText{
+						{
+							Type: notion.RichTextTypeText,
+							Text: &notion.Text{
+								Content: "Foobar",
+							},
+							PlainText: "Foobar",
+							Annotations: &notion.Annotations{
+								Color: notion.ColorDefault,
+							},
 						},
 					},
 				},
