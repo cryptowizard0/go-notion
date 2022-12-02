@@ -2,7 +2,6 @@ package notion
 
 import (
 	"encoding/json"
-	"fmt"
 	"time"
 )
 
@@ -20,16 +19,9 @@ type Block interface {
 	json.Marshaler
 }
 
-type blockDTO struct {
-	ID             string     `json:"id,omitempty"`
-	Parent         *Parent    `json:"parent,omitempty"`
-	Type           BlockType  `json:"type,omitempty"`
-	CreatedTime    *time.Time `json:"created_time,omitempty"`
-	CreatedBy      *BaseUser  `json:"created_by,omitempty"`
-	LastEditedTime *time.Time `json:"last_edited_time,omitempty"`
-	LastEditedBy   *BaseUser  `json:"last_edited_by,omitempty"`
-	HasChildren    bool       `json:"has_children,omitempty"`
-	Archived       *bool      `json:"archived,omitempty"`
+type BlockDTO struct {
+	BaseBlock
+	Type BlockType `json:"type,omitempty"`
 
 	Paragraph        *ParagraphBlock        `json:"paragraph,omitempty"`
 	Heading1         *Heading1Block         `json:"heading_1,omitempty"`
@@ -63,6 +55,10 @@ type blockDTO struct {
 	LinkToPage       *LinkToPageBlock       `json:"link_to_page,omitempty"`
 	SyncedBlock      *SyncedBlock           `json:"synced_block,omitempty"`
 	Template         *TemplateBlock         `json:"template,omitempty"`
+}
+
+func (b BlockDTO) MarshalJSON() ([]byte, error) {
+	return json.Marshal(b)
 }
 
 type BaseBlock struct {
@@ -864,7 +860,7 @@ type BlockChildrenResponse struct {
 
 func (resp *BlockChildrenResponse) UnmarshalJSON(b []byte) error {
 	type responseDTO struct {
-		Results    []blockDTO `json:"results"`
+		Results    []BlockDTO `json:"results"`
 		HasMore    bool       `json:"has_more"`
 		NextCursor *string    `json:"next_cursor"`
 	}
@@ -880,140 +876,12 @@ func (resp *BlockChildrenResponse) UnmarshalJSON(b []byte) error {
 	resp.Results = make([]Block, len(dto.Results))
 
 	for i, blockDTO := range dto.Results {
-		resp.Results[i] = blockDTO.Block()
+		resp.Results[i] = blockDTO
 	}
 
 	return nil
 }
 
-func (dto blockDTO) Block() Block {
-	baseBlock := BaseBlock{
-		BID:          dto.ID,
-		BHasChildren: dto.HasChildren,
-	}
-
-	if dto.Parent != nil {
-		baseBlock.BParent = *dto.Parent
-	}
-
-	if dto.CreatedTime != nil {
-		baseBlock.BCreatedTime = *dto.CreatedTime
-	}
-
-	if dto.CreatedBy != nil {
-		baseBlock.BCreatedBy = *dto.CreatedBy
-	}
-
-	if dto.LastEditedTime != nil {
-		baseBlock.BLastEditedTime = *dto.LastEditedTime
-	}
-
-	if dto.LastEditedBy != nil {
-		baseBlock.BLastEditedBy = *dto.LastEditedBy
-	}
-
-	if dto.Archived != nil {
-		baseBlock.BArchived = *dto.Archived
-	}
-
-	switch dto.Type {
-	case BlockTypeParagraph:
-		dto.Paragraph.BaseBlock = baseBlock
-		return dto.Paragraph
-	case BlockTypeHeading1:
-		dto.Heading1.BaseBlock = baseBlock
-		return dto.Heading1
-	case BlockTypeHeading2:
-		dto.Heading2.BaseBlock = baseBlock
-		return dto.Heading2
-	case BlockTypeHeading3:
-		dto.Heading3.BaseBlock = baseBlock
-		return dto.Heading3
-	case BlockTypeBulletedListItem:
-		dto.BulletedListItem.BaseBlock = baseBlock
-		return dto.BulletedListItem
-	case BlockTypeNumberedListItem:
-		dto.NumberedListItem.BaseBlock = baseBlock
-		return dto.NumberedListItem
-	case BlockTypeToDo:
-		dto.ToDo.BaseBlock = baseBlock
-		return dto.ToDo
-	case BlockTypeToggle:
-		dto.Toggle.BaseBlock = baseBlock
-		return dto.Toggle
-	case BlockTypeChildPage:
-		dto.ChildPage.BaseBlock = baseBlock
-		return dto.ChildPage
-	case BlockTypeChildDatabase:
-		dto.ChildDatabase.BaseBlock = baseBlock
-		return dto.ChildDatabase
-	case BlockTypeCallout:
-		dto.Callout.BaseBlock = baseBlock
-		return dto.Callout
-	case BlockTypeQuote:
-		dto.Quote.BaseBlock = baseBlock
-		return dto.Quote
-	case BlockTypeCode:
-		dto.Code.BaseBlock = baseBlock
-		return dto.Code
-	case BlockTypeEmbed:
-		dto.Embed.BaseBlock = baseBlock
-		return dto.Embed
-	case BlockTypeImage:
-		dto.Image.BaseBlock = baseBlock
-		return dto.Image
-	case BlockTypeAudio:
-		dto.Audio.BaseBlock = baseBlock
-		return dto.Audio
-	case BlockTypeVideo:
-		dto.Video.BaseBlock = baseBlock
-		return dto.Video
-	case BlockTypeFile:
-		dto.File.BaseBlock = baseBlock
-		return dto.File
-	case BlockTypePDF:
-		dto.PDF.BaseBlock = baseBlock
-		return dto.PDF
-	case BlockTypeBookmark:
-		dto.Bookmark.BaseBlock = baseBlock
-		return dto.Bookmark
-	case BlockTypeEquation:
-		dto.Equation.BaseBlock = baseBlock
-		return dto.Equation
-	case BlockTypeDivider:
-		dto.Divider.BaseBlock = baseBlock
-		return dto.Divider
-	case BlockTypeTableOfContents:
-		dto.TableOfContents.BaseBlock = baseBlock
-		return dto.TableOfContents
-	case BlockTypeBreadCrumb:
-		dto.Breadcrumb.BaseBlock = baseBlock
-		return dto.Breadcrumb
-	case BlockTypeColumnList:
-		dto.ColumnList.BaseBlock = baseBlock
-		return dto.ColumnList
-	case BlockTypeColumn:
-		dto.Column.BaseBlock = baseBlock
-		return dto.Column
-	case BlockTypeTable:
-		dto.Table.BaseBlock = baseBlock
-		return dto.Table
-	case BlockTypeTableRow:
-		dto.TableRow.BaseBlock = baseBlock
-		return dto.TableRow
-	case BlockTypeLinkPreview:
-		dto.LinkPreview.BaseBlock = baseBlock
-		return dto.LinkPreview
-	case BlockTypeLinkToPage:
-		dto.LinkToPage.BaseBlock = baseBlock
-		return dto.LinkToPage
-	case BlockTypeSyncedBlock:
-		dto.SyncedBlock.BaseBlock = baseBlock
-		return dto.SyncedBlock
-	case BlockTypeTemplate:
-		dto.Template.BaseBlock = baseBlock
-		return dto.Template
-	default:
-		panic(fmt.Sprintf("type %q is unsupported", dto.Type))
-	}
+func (dto BlockDTO) Block() Block {
+	return dto
 }

@@ -430,7 +430,7 @@ func (c *Client) FindBlockByID(ctx context.Context, blockID string) (Block, erro
 		return nil, fmt.Errorf("notion: failed to find block: %w", parseErrorResponse(res))
 	}
 
-	var dto blockDTO
+	var dto BlockDTO
 
 	err = json.NewDecoder(res.Body).Decode(&dto)
 	if err != nil {
@@ -465,7 +465,7 @@ func (c *Client) UpdateBlock(ctx context.Context, blockID string, block Block) (
 		return nil, fmt.Errorf("notion: failed to update block: %w", parseErrorResponse(res))
 	}
 
-	var dto blockDTO
+	var dto BlockDTO
 
 	err = json.NewDecoder(res.Body).Decode(&dto)
 	if err != nil {
@@ -493,7 +493,7 @@ func (c *Client) DeleteBlock(ctx context.Context, blockID string) (Block, error)
 		return nil, fmt.Errorf("notion: failed to delete block: %w", parseErrorResponse(res))
 	}
 
-	var dto blockDTO
+	var dto BlockDTO
 
 	err = json.NewDecoder(res.Body).Decode(&dto)
 	if err != nil {
